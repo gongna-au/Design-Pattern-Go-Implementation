@@ -1,8 +1,8 @@
 package sidecar
 
 import (
-	"demo/mq"
-	"demo/network"
+	"github.com/Design-Pattern-Go-Implementation/mq"
+	"github.com/Design-Pattern-Go-Implementation/network"
 )
 
 // AllInOneFactory 具备所有功能的sidecar工厂
