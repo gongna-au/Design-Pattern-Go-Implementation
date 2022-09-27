@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/Design-Pattern-Go-Implementation/db"
 	"github.com/Design-Pattern-Go-Implementation/http"
-	//"github.com/Design-Pattern-Go-Implementation/registry/model"
+	"github.com/Design-Pattern-Go-Implementation/service/registry/model"
 	"github.com/Design-Pattern-Go-Implementation/sidecar"
-	//"github.com/google/uuid"
+	"github.com/google/uuid"
 )
 
 // svcManagement 服务管理，包含服务注册、更新、去注册。另外，服务订阅、去订阅、通知的功能由于与服务注册、更新、去注册紧密关联，
