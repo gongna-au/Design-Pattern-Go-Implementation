@@ -24,15 +24,9 @@ func (c Context) Add(key string, value string) {
 	c[key] = value
 }
 
-func (c Context) GetString(key string) string {
-	v, ok := c[key]
-	if ok {
-		return v
-
-	} else {
-		return ""
-	}
-
+func (c Context) GetString(key string) (string, bool) {
+	val, ok := c[key]
+	return val, ok
 }
 
 func (c Context) GetInt(key string) (int, bool) {

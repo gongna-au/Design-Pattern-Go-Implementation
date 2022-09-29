@@ -20,6 +20,13 @@ type Event struct {
 	payload interface{}
 }
 
+func NewEvent(payload interface{}) *Event {
+	return &Event{
+		headers: make(map[string]string),
+		payload: payload,
+	}
+}
+
 func (e *Event) AddHeader(key, value string) *Event {
 	e.headers[key] = value
 	return e

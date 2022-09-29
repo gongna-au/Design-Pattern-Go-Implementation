@@ -31,6 +31,10 @@ type socketImpl struct {
 	listeners []SocketListener
 }
 
+func DefaultSocket() *socketImpl {
+	return &socketImpl{}
+}
+
 // Listen 在endpoint指向地址上起监听 endpoint资源是暴露一个服务的ip地址和port的列表。（endpoint来自与包裹里面的目的地址）
 func (s *socketImpl) Listen(endpoint Endpoint) error {
 	return GetnetworkInstance().Listen(endpoint, s)
