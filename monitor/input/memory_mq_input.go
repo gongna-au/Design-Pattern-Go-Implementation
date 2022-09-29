@@ -6,6 +6,7 @@ import (
 )
 
 // 内存消息中间件输入
+// MemoryMqInput 具体的插件实现了Plugin 接口
 type MemoryMqInput struct {
 	//把获取的topic对应的数据存储起来
 	topic mq.Topic
@@ -31,6 +32,7 @@ func (m *MemoryMqInput) SetContext(ctx plugin.Context) {
 	}
 }
 
+// 具体的Input动作
 func (m *MemoryMqInput) Input() (*plugin.Event, error) {
 	msg, err := m.consumer.Consume(m.topic)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 )
 
+// SocketInput 具体的插件实现了Plugin 接口
 type SocketInput struct {
 	socket      network.Socket
 	endpoint    network.Endpoint
@@ -38,6 +39,7 @@ func (s *SocketInput) SetContext(ctx plugin.Context) {
 	s.endpoint = network.EndpointOf(ip, port)
 }
 
+// 具体的Input动作
 func (s *SocketInput) Input() (*plugin.Event, error) {
 	packet, ok := <-s.packets
 	if !ok {
@@ -48,6 +50,7 @@ func (s *SocketInput) Input() (*plugin.Event, error) {
 	return event, nil
 }
 
+//
 func (s *SocketInput) Handle(packet *network.Packet) error {
 	if s.socket == nil {
 		return plugin.ErrPluginNotInstalled

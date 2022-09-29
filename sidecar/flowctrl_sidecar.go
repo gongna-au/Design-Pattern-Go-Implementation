@@ -1,9 +1,9 @@
 package sidecar
 
 import (
-	"github.com/Design-Pattern-Go-Implementation//sidecar/flowctrl"
 	"github.com/Design-Pattern-Go-Implementation/http"
 	"github.com/Design-Pattern-Go-Implementation/network"
+	"github.com/Design-Pattern-Go-Implementation/sidecar/flowctrl"
 )
 
 // 关键点1: 定义被装饰的抽象接口

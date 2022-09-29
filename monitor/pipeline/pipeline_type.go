@@ -12,6 +12,6 @@ import (
 var Type = make(plugin.Types)
 
 func init() {
-	Type["simple"] = reflect.TypeOf()
-	Type["pool"] = reflect.TypeOf()
+	Type["simple"] = reflect.TypeOf(SimplePipeline{})
+	Type["pool"] = reflect.TypeOf(PoolPipeline{})
 }

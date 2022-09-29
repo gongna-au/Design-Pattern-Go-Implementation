@@ -1,8 +1,14 @@
 package pipeline
 
 import (
+	"fmt"
+	"github.com/Design-Pattern-Go-Implementation/monitor/config"
+	"github.com/Design-Pattern-Go-Implementation/monitor/filter"
+	"github.com/Design-Pattern-Go-Implementation/monitor/input"
+	"github.com/Design-Pattern-Go-Implementation/monitor/output"
 	"github.com/Design-Pattern-Go-Implementation/monitor/plugin"
 	"reflect"
+	"sync/atomic"
 )
 
 /*
@@ -21,4 +27,97 @@ type Plugin interface {
 	SetInput(input input.Plugin)
 	SetFilter(filter filter.Plugin)
 	SetOutput(output output.Plugin)
+}
+
+/*
+ * 里氏替换原则（LSP）：子类型必须能够替换掉它们的基类型，也即基类中的所有性质，在子类中仍能成立。
+ * 设计出符合LSP的软件的要点就是，根据该软件的使用者行为作出的合理假设，以此来审视它是否具备有效性和正确性。
+ * 要想设计出符合LSP的模型所需要遵循的一些约束：
+ * 1、基类应该设计为一个抽象类（不能直接实例化，只能被继承）。
+ * 2、子类应该实现基类的抽象接口，而不是重写基类已经实现的具体方法。
+ * 3、子类可以新增功能，但不能改变基类的功能。
+ * 4、子类不能新增约束，包括抛出基类没有声明的异常。
+ * 例子：
+ * pipeline.NewPlugin中的入参没有使用plugin.Config作为入参类型，符合LSP。否则就需要转型，破坏了LSP
+ */
+/*
+ 	里氏替换原则（LSP）要求你基类必须是结构体，那么这个结构体被继承时才有方法
+	如果是继承接口，那么子类还得实现接口的方法
+
+*/
+
+// NewPlugin Pipeline工厂方法
+func NewPlugin(config config.Pipeline) (Plugin, error) {
+	pipelineType, ok := Type[config.PluginType]
+	if !ok {
+		return nil, plugin.ErrUnknownPlugin
+	}
+	pipelinePlugin := reflect.New(pipelineType)
+
+	pipelinePlugin.MethodByName("SetContext").Call([]reflect.Value{reflect.ValueOf(config.Ctx)})
+	// 设置input插件
+	inputPlugin, err := input.NewPlugin(config.Input)
+	if err != nil {
+		return nil, err
+	}
+	pipelinePlugin.MethodByName("SetInput").Call([]reflect.Value{reflect.ValueOf(inputPlugin)})
+	// 设置filter插件
+	var filterPlugins []filter.Plugin
+	for _, fc := range config.Filters {
+		filterPlugin, err := filter.NewPlugin(fc)
+		if err != nil {
+			return nil, err
+		}
+		filterPlugins = append(filterPlugins, filterPlugin)
+	}
+	filterChain := filter.NewChain(filterPlugins)
+	pipelinePlugin.MethodByName("SetFilter").Call([]reflect.Value{reflect.ValueOf(filterChain)})
+	// 设置output插件
+	outputPlugin, err := output.NewPlugin(config.Output)
+	if err != nil {
+		return nil, err
+	}
+	pipelinePlugin.MethodByName("SetOutput").Call([]reflect.Value{reflect.ValueOf(outputPlugin)})
+
+	return pipelinePlugin.Interface().(Plugin), nil
+}
+
+type pipelineTemplate struct {
+	input   input.Plugin
+	filter  filter.Plugin
+	output  output.Plugin
+	isClose uint32
+	run     func()
+}
+
+func (p *pipelineTemplate) SetInput(input input.Plugin) {
+	p.input = input
+}
+
+func (p *pipelineTemplate) SetFilter(filter filter.Plugin) {
+	p.filter = filter
+}
+
+func (p *pipelineTemplate) SetOutput(output output.Plugin) {
+	p.output = output
+}
+
+func (p *pipelineTemplate) doRun() {
+	for atomic.LoadUint32(&p.isClose) != 1 {
+		// 得到event
+		event, err := p.input.Input()
+		if err != nil {
+			fmt.Printf("pipeline input err %s\n", err.Error())
+			atomic.StoreUint32(&p.isClose, 1)
+			break
+		}
+		// 处理event
+		event = p.filter.Filter(event)
+		// 输出 event
+		if err = p.output.Output(event); err != nil {
+			fmt.Printf("pipeline output err %s\n", err.Error())
+			atomic.StoreUint32(&p.isClose, 1)
+			break
+		}
+	}
 }
