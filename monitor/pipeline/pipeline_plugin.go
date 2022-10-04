@@ -90,6 +90,20 @@ type pipelineTemplate struct {
 	run     func()
 }
 
+func (p *pipelineTemplate) Install() {
+	p.output.Install()
+	p.filter.Install()
+	p.input.Install()
+	p.run()
+}
+
+func (p *pipelineTemplate) Uninstall() {
+	p.input.Uninstall()
+	p.filter.Uninstall()
+	p.output.Uninstall()
+	atomic.StoreUint32(&p.isClose, 1)
+}
+
 func (p *pipelineTemplate) SetInput(input input.Plugin) {
 	p.input = input
 }
