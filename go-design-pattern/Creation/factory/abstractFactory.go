@@ -1,4 +1,4 @@
-package creation
+package factory
 
 // 抽象工厂
 

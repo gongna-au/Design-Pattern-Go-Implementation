@@ -1,4 +1,4 @@
-package creation
+package factory
 
 // 工厂方法
 // 当对象的创建逻辑比较复杂，

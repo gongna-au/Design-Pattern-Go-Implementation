@@ -1,4 +1,4 @@
-package creation
+package factory
 
 // 简单工厂
 // 由于 Go 本身是没有构造函数的，一般而言我们采用 NewName 的方式创建对象/接口
