@@ -1,4 +1,4 @@
-package structural
+package proxy
 
 import (
 	"testing"
@@ -28,7 +28,7 @@ func (p *UserProxy) Login(username, password string) (r0 error) {
 }
 `
 
-	got, err := generate("./generatetemplete/static.go")
+	got, err := generate("../generatetemplete/static.go")
 	require.Nil(t, err)
 	assert.Equal(t, want, got)
 }
