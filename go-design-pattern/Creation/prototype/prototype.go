@@ -26,6 +26,7 @@ type Keyword struct {
 	UpdatedAt *time.Time
 }
 
+// 这里是自己克隆自己
 // Clone 这里使用序列化与反序列化的方式深拷贝
 func (k *Keyword) Clone() *Keyword {
 	var newKeyword Keyword
@@ -36,3 +37,37 @@ func (k *Keyword) Clone() *Keyword {
 	json.Unmarshal(b, &newKeyword)
 	return &newKeyword
 }
+
+// 第二种思路是客户类获取到 要克隆的实例，然后克隆返回一个实例，这个实例不是传入的实例，但是和实例看起来长的一样
+// x.Clone()!=x
+// x.Clone.GetClass() == x.GetClass()
+// x.equal()== x.Cloen().equal() 仅仅指的是值相等
+/*
+type Prototype interface{
+	Clone ()Prototype
+}
+
+type AbstractPrototype  struct{
+
+}
+
+func (a *AbstractPrototype ) Clone()*AbstractPrototype {
+	// 本质是自己调用自己去克隆
+	a.Clone()
+}
+
+type specificPrototypeA struct{
+	AbstractPrototype
+}
+
+func (s *specificPrototypeA ) Clone()*AbstractPrototype {
+	// 本质是自己调用自己去克隆
+	var e AbstractPrototype
+	b,_:= json.Mashal(s)
+	json.Unmashal(b,&e)
+	return &e
+}
+
+
+
+*/
