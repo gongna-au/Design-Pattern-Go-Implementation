@@ -8,14 +8,7 @@ type IClient interface {
 	Update(int)
 }
 
-// 具体的服务实现了接口的方法
-type ServiceUpdate struct {
-}
-
-func (s *ServiceUpdate) UpdateUser(user int) {
-
-}
-
+// Adapter实现了接口，供给外界的client 使用
 type Adapter struct {
 	sd *ServiceUpdate
 }
@@ -26,6 +19,24 @@ func NewAdapter(sd *ServiceUpdate) *Adapter {
 	}
 }
 
-func (a *Adapter) Update(int) {
-	a.sd.UpdateUser(1)
+func (a *Adapter) Update(i int) {
+	a.sd.UpdateUser(i)
+}
+
+// 具体的服务有不同与接口的方法
+type ServiceUpdate struct {
+}
+
+func (s *ServiceUpdate) UpdateUser(user int) {
+
+}
+
+// 作为参数传递给Adapter
+func NewServiceUpdate() *ServiceUpdate {
+	return &ServiceUpdate{}
+}
+
+func Client() {
+	adapter := NewAdapter(NewServiceUpdate())
+	adapter.Update(9)
 }
