@@ -1,5 +1,7 @@
 package bridge
 
+import "fmt"
+
 /* 1. 处理继承的时候，试图在两个独立的维度（两个父类）扩展子类的时候：
 子类可以同时继承这两个维度的类，
 也可以是抽取其中一个维度的类并使之成为独立的类层次，那么在初始类中引用这个新层次的对象，从而使得一个类不必拥有所有的状态和行为
@@ -84,7 +86,7 @@ type RemoteControl struct {
 	device Device
 }
 
-// 暴露给客户端调用
+// 暴露给子类使用调用
 func NewRemoteControl(device Device) *RemoteControl {
 	return &RemoteControl{
 		device: device,
@@ -118,10 +120,24 @@ func (r *RemoteControl) ChannelUp() {
 }
 
 type AdvancedRemote struct {
-	RemoteControl
+	*RemoteControl
 }
 
 func (a *AdvancedRemote) Mute() {
 	a.device.setVolume(0)
+
+}
+func NewAdvancedRemote(d Device) *AdvancedRemote {
+	return &AdvancedRemote{
+		RemoteControl: NewRemoteControl(d),
+	}
+}
+
+func Client() {
+	remote := NewAdvancedRemote(NewTv())
+	err := remote.TogglePower()
+	if err != nil {
+		fmt.Println(err)
+	}
 
 }
