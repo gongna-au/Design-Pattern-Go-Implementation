@@ -3,7 +3,6 @@ module github.com/Design-Pattern-Go-Implementation
 go 1.18
 
 require (
-	github.com/cocotyty/dpig v0.0.0-20210722104716-97f32ea2d925
 	github.com/google/uuid v1.3.0
 	github.com/panjf2000/ants v1.2.1
 	github.com/stretchr/testify v1.8.0
