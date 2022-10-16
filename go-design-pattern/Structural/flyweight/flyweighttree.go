@@ -2,6 +2,8 @@ package flyweight
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
 	"sync"
 )
 
@@ -32,6 +34,20 @@ type Tree struct {
 	internalState TreeType
 }
 
+func NewTree(x int, y int, internalState TreeType) *Tree {
+
+	return &Tree{
+		x:             y,
+		y:             y,
+		internalState: internalState,
+	}
+}
+
+func (t *Tree) Draw(x int, y int) {
+	t.x = x
+	t.y = y
+}
+
 // Forest 代表很多Tree 的集合，因为每个Tree保存的状态大多差不多
 // 且对于Forest来说，它拥有的Tree太多了，而且每个Tree存储需要的内存很大
 // 所以考虑把Tree中的internalState 抽离出来构成享元
@@ -49,20 +65,6 @@ func (t *Forest) AddTree(x int, y int, name string, color string, texture string
 	result := treeTypeFactory.GetTreeType(name, color, texture)
 	tree := NewTree(x, y, result)
 	t.Trees = append(t.Trees, *tree)
-}
-
-func NewTree(x int, y int, internalState TreeType) *Tree {
-
-	return &Tree{
-		x:             y,
-		y:             y,
-		internalState: internalState,
-	}
-}
-
-func (t *Tree) Draw(x int, y int) {
-	t.x = x
-	t.y = y
 }
 
 // 在此示例中，享元模式有助于在画布上渲染数百万个树对象时减少内存使用。
@@ -121,6 +123,21 @@ func (t *TreeTypeFactory) GetTreeType(name string, color string, texture string)
 	}
 }
 
+// 得到所有的享元
+func (t *TreeTypeFactory) GetAllTrees() []TreeType {
+	return *t.Trees
+
+}
+
+// 输出所有的享元
+func (t *TreeTypeFactory) OutputAllTrees() {
+	for k, v := range *t.Trees {
+		fmt.Printf("The " + strconv.Itoa(k) + " is")
+		fmt.Println(v)
+	}
+}
+
+// Find 是供给GetTreeType()调用的
 func (t TreeTypeCollection) Find(name string, color string, texture string) (TreeType, error) {
 	for _, v := range t {
 		if v.name == name && v.color == color && v.texture == texture {
@@ -133,6 +150,7 @@ func (t TreeTypeCollection) Find(name string, color string, texture string) (Tre
 	return TreeType{}, errors.New("not find")
 }
 
+// Add 是供给GetTreeType()调用的
 func (t *TreeTypeCollection) Add(trees ...TreeType) {
 	*t = append([]TreeType(*t), trees...)
 }
