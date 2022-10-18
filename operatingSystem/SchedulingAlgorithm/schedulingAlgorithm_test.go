@@ -2,6 +2,13 @@ package schedulingalgorithm
 
 import "testing"
 
-func TestAlgram(t *testing.T) {
-	Client()
+func TestHRRF(t *testing.T) {
+	ClientHRRF()
+}
+func TestFCFS(t *testing.T) {
+	ClientFCFS()
+}
+
+func TestSJF(t *testing.T) {
+	ClientSJF()
 }
