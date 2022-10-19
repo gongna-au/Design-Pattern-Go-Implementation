@@ -12,3 +12,7 @@ func TestFCFS(t *testing.T) {
 func TestSJF(t *testing.T) {
 	ClientSJF()
 }
+
+func TestHPF(t *testing.T) {
+	ClientHPF()
+}

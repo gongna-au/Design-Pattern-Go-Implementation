@@ -135,58 +135,113 @@ func (h *HPF) SetCollection(i ICollection) {
 }
 
 func (h *HPF) Schedule() {
+
 	w, ok := h.Collection.(*WorkCollection)
 	fmt.Printf("输入的信息：\n")
-	/* for _, v := range w.Works {
+	for _, v := range w.Works {
 		fmt.Printf("Id:%-8d ArriveTime:%-8d ExcuteTime:%-8d PrivilegeLevel:%-8d\n", v.Id, v.ArriveTime, v.ExcuteTime, v.Level)
-	} */
-	if ok {
-		sort.Slice(w.Works, func(i, j int) bool {
-			if w.Works[i].Level < w.Works[j].Level && w.Works[i].ArriveTime < w.Works[j].ArriveTime {
-				return true
-			} else {
-				return false
-			}
-		})
-	} else {
+	}
+	if !ok {
 		fmt.Println("ICollection Interface can not convert to *WorkCollection")
 	}
+	fmt.Printf("HPF 作业调度算法：\n")
+	currentTime := 0
+	length := len(w.Works)
+	isscheduled := make(map[int]int, length)
+	InItscheduledMap(isscheduled, length)
+	for i := 0; i < length; i++ {
+		currentTime = HighestPrivligeNext(currentTime, w.Works, isscheduled)
+	}
+	sort.Slice(w.Works, func(i, j int) bool {
+		if w.Works[i].StartTime < w.Works[j].StartTime {
+			return true
+		} else {
+			return false
+		}
+	})
 
 	waitTime := 0
 	roundTime := 0
-	fmt.Printf("HPF 作业调度算法：\n")
-	for k, v := range w.Works {
-		if k == 0 {
-			v.StartTime = v.ArriveTime
-			v.WaitTime = 0
-			v.RoundTime = v.ExcuteTime
-			v.OverTime = v.StartTime + v.ExcuteTime
-			waitTime = waitTime + v.WaitTime
-			roundTime = roundTime + v.RoundTime
-			fmt.Printf("Id:%-8d ArriveTime:%-8d StartTime:%-8d WaitTime:%-8d RoundTime:%-8d\n", v.Id, v.ArriveTime, v.StartTime, v.WaitTime, v.RoundTime)
-			continue
-		}
-
-		if v.ArriveTime >= w.Works[k-1].OverTime {
-			v.StartTime = v.ArriveTime
-
-			v.WaitTime = 0
-			v.OverTime = v.StartTime + v.ExcuteTime
-			v.RoundTime = v.OverTime - v.ArriveTime
-
-		} else {
-			v.StartTime = w.Works[k-1].OverTime
-			v.WaitTime = v.StartTime - v.ArriveTime
-			v.OverTime = v.StartTime + v.ExcuteTime
-			v.RoundTime = v.OverTime - v.ArriveTime
-		}
-
+	for _, v := range w.Works {
 		waitTime = waitTime + v.WaitTime
 		roundTime = roundTime + v.RoundTime
 		fmt.Printf("Id:%-8d ArriveTime:%-8d StartTime:%-8d WaitTime:%-8d RoundTime:%-8d\n", v.Id, v.ArriveTime, v.StartTime, v.WaitTime, v.RoundTime)
 	}
 	fmt.Printf("总等待时间:%-8d 总周转时间:%-8d\n", waitTime, roundTime)
 	fmt.Printf("平均等待时间: %4.2f 平均周转时间: %4.2f\n", float64(waitTime)/float64(len(w.Works)), float64(roundTime)/float64(len(w.Works)))
+
+}
+
+func HighestPrivligeNext(current int, works []*Work, isscheduled map[int]int) int {
+	// 在当前时间点有两种类型的作业，一种是已经等待了一会的作业和一分钟都还没等待的作业
+	// 已经到达的任务
+	beforeCurrentTime := []*Work{}
+	beforeCurrentTimeIndexinworks := []int{}
+	for k, v := range works {
+		if isscheduled[k] == 1 {
+			continue
+		} else {
+			if (current - v.ArriveTime) > 0 {
+				beforeCurrentTime = append(beforeCurrentTime, v)
+				beforeCurrentTimeIndexinworks = append(beforeCurrentTimeIndexinworks, k)
+			}
+		}
+	}
+	// 起始时间等于或者在当前时间之后的
+	arriveFirst := 0
+	if len(beforeCurrentTime) == 0 {
+		// 找到达时间最早的
+		for k, v := range works {
+			if isscheduled[k] == 1 {
+				continue
+			}
+			if v.ArriveTime < works[arriveFirst].ArriveTime {
+				arriveFirst = k
+			} else {
+				continue
+			}
+		}
+	}
+	//fmt.Printf("arriveFirst ID is %-4d", arriveFirst)
+	if len(beforeCurrentTime) == 0 {
+		// 开始的时间为到达的时间
+		works[arriveFirst].StartTime = works[arriveFirst].ArriveTime
+		// 等待时间
+		works[arriveFirst].WaitTime = 0
+		//周转时间
+		works[arriveFirst].RoundTime = works[arriveFirst].ExcuteTime
+		// 结束时间
+		works[arriveFirst].OverTime = works[arriveFirst].ArriveTime + works[arriveFirst].ExcuteTime
+		// 最高响应比 周转时间/执行之间
+		works[arriveFirst].Excellent = 1
+		// 调度结束
+		isscheduled[arriveFirst] = 1
+		// 当前时间为结束时间
+		current = works[arriveFirst].OverTime
+		return current
+	} else {
+		// 已经有先来的任务，假设第一个响应比最大
+		// tempResponseRatio
+		highestLevelIndex := 0
+		max := -1
+		for k, v := range beforeCurrentTime {
+			if v.Level > max {
+				highestLevelIndex = k
+				max = v.Level
+			}
+		}
+		//fmt.Printf("BeforeWorksIndex:is %d\n", shortestTimeIndex)
+		workIndex := beforeCurrentTimeIndexinworks[highestLevelIndex]
+		//fmt.Printf("WorksIndex:is %d\n", workIndex)
+		beforeCurrentTime[highestLevelIndex].StartTime = current
+		beforeCurrentTime[highestLevelIndex].OverTime = beforeCurrentTime[highestLevelIndex].StartTime + beforeCurrentTime[highestLevelIndex].ExcuteTime
+		beforeCurrentTime[highestLevelIndex].WaitTime = beforeCurrentTime[highestLevelIndex].StartTime - beforeCurrentTime[highestLevelIndex].ArriveTime
+		beforeCurrentTime[highestLevelIndex].RoundTime = beforeCurrentTime[highestLevelIndex].OverTime - beforeCurrentTime[highestLevelIndex].ArriveTime
+		excellent, _ := strconv.ParseFloat(fmt.Sprintf("%.5f", float64(beforeCurrentTime[highestLevelIndex].RoundTime)/float64(beforeCurrentTime[highestLevelIndex].ExcuteTime)), 64)
+		beforeCurrentTime[highestLevelIndex].Excellent = excellent
+		isscheduled[workIndex] = 1
+		return beforeCurrentTime[highestLevelIndex].OverTime
+	}
 
 }
 
@@ -554,4 +609,23 @@ func ClientSJF() {
 		algorithm1.Schedule()
 	}
 
+}
+
+func ClientHPF() {
+	work1 := NewWork(1, 800, 50, 0)
+	work2 := NewWork(2, 815, 30, 1)
+	work3 := NewWork(3, 830, 25, 2)
+	work4 := NewWork(4, 835, 20, 2)
+	work5 := NewWork(5, 845, 15, 2)
+	work6 := NewWork(6, 700, 10, 1)
+
+	//work7 := NewWork(7, 820, 5, 0)
+	collection1 := NewWorkCollection(work1, work2, work3, work4, work5, work6)
+	algorithm1, err := collection1.CreateAlgorithm("HPF")
+	algorithm1.SetCollection(collection1)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		algorithm1.Schedule()
+	}
 }
